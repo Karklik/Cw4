@@ -15,10 +15,14 @@ namespace Cw4.DAL
             using var command = new SqlCommand
             {
                 Connection = connection,
-                CommandText = $"INSERT INTO Student " +
-                $"VALUES('{student.IndexNumber}', '{student.FirstName}', '{student.LastName}', " +
-                $"'{student.BirthDate}', {student.IdEnrollment})"
+                CommandText = "INSERT INTO Student " +
+                "VALUES(@indexNumber, @firstName, @lastName, @birthDate, @idEnrollment)"
             };
+            command.Parameters.AddWithValue("indexNumber", student.IndexNumber);
+            command.Parameters.AddWithValue("firstName", student.FirstName);
+            command.Parameters.AddWithValue("lastName", student.LastName);
+            command.Parameters.AddWithValue("birthDate", student.BirthDate);
+            command.Parameters.AddWithValue("idEnrollment", student.IdEnrollment);
             connection.Open();
             return command.ExecuteNonQuery();
         }
@@ -29,8 +33,9 @@ namespace Cw4.DAL
             using var command = new SqlCommand
             {
                 Connection = connection,
-                CommandText = $"DELETE FROM Student WHERE IndexNumber = '{indexNumber}'"
+                CommandText = "DELETE FROM Student WHERE IndexNumber = @indexNumber"
             };
+            command.Parameters.AddWithValue("indexNumber", indexNumber);
             connection.Open();
             return command.ExecuteNonQuery();
         }
@@ -38,24 +43,25 @@ namespace Cw4.DAL
         public Student GetStudent(string indexNumber)
         {
             using var connection = new SqlConnection(connectionString);
-            using (var command = new SqlCommand())
+            using var command = new SqlCommand
             {
-                command.Connection = connection;
-                command.CommandText = $"SELECT * FROM Student WHERE IndexNumber = '{indexNumber}'";
-                connection.Open();
-                var executeReader = command.ExecuteReader();
-                while (executeReader.Read())
+                Connection = connection,
+                CommandText = "SELECT * FROM Student WHERE IndexNumber = @indexNumber"
+            };
+            command.Parameters.AddWithValue("indexNumber", indexNumber);
+            connection.Open();
+            var dataReader = command.ExecuteReader();
+            if (dataReader.Read())
+            {
+                var student = new Student
                 {
-                    var student = new Student
-                    {
-                        IndexNumber = executeReader["IndexNumber"].ToString(),
-                        FirstName = executeReader["FirstName"].ToString(),
-                        LastName = executeReader["LastName"].ToString(),
-                        BirthDate = executeReader["BirthDate"].ToString(),
-                        IdEnrollment = IntegerType.FromObject(executeReader["IdEnrollment"])
-                    };
-                    return student;
-                }
+                    IndexNumber = dataReader["IndexNumber"].ToString(),
+                    FirstName = dataReader["FirstName"].ToString(),
+                    LastName = dataReader["LastName"].ToString(),
+                    BirthDate = dataReader["BirthDate"].ToString(),
+                    IdEnrollment = IntegerType.FromObject(dataReader["IdEnrollment"])
+                };
+                return student;
             }
             return null;
         }
@@ -66,22 +72,23 @@ namespace Cw4.DAL
             using var command = new SqlCommand
             {
                 Connection = connection,
-                CommandText = $"SELECT Enrollment.IdEnrollment, Semester, StartDate, Name " +
-                                $"FROM Student " +
-                                $"INNER JOIN Enrollment ON Student.IdEnrollment = Enrollment.IdEnrollment " +
-                                $"INNER JOIN Studies ON Enrollment.IdStudy = Studies.IdStudy " +
-                                $"WHERE IndexNumber = '{indexNumber}'"
+                CommandText = "SELECT Enrollment.IdEnrollment, Semester, StartDate, Name " +
+                "FROM Student " +
+                "INNER JOIN Enrollment ON Student.IdEnrollment = Enrollment.IdEnrollment " +
+                "INNER JOIN Studies ON Enrollment.IdStudy = Studies.IdStudy " +
+                "WHERE IndexNumber = @indexNumber"
             };
+            command.Parameters.AddWithValue("indexNumber", indexNumber);
             connection.Open();
-            var executeReader = command.ExecuteReader();
-            if (executeReader.Read())
+            var dataReader = command.ExecuteReader();
+            if (dataReader.Read())
             {
                 var enrollment = new Enrollment
                 {
-                    IdEnrollment = IntegerType.FromObject(executeReader["IdEnrollment"]),
-                    Semester = executeReader["Semester"].ToString(),
-                    StartDate = executeReader["StartDate"].ToString(),
-                    Name = executeReader["Name"].ToString(),
+                    IdEnrollment = IntegerType.FromObject(dataReader["IdEnrollment"]),
+                    Semester = dataReader["Semester"].ToString(),
+                    StartDate = dataReader["StartDate"].ToString(),
+                    Name = dataReader["Name"].ToString(),
                 };
                 return enrollment;
             }
@@ -94,24 +101,24 @@ namespace Cw4.DAL
                 orderBy = "IndexNumber";
             List<Student> students = new List<Student>();
             using var connection = new SqlConnection(connectionString);
-            using (var command = new SqlCommand())
+            using var command = new SqlCommand()
             {
-                command.Connection = connection;
-                command.CommandText = $"SELECT * FROM Student ORDER BY {orderBy}";
-                connection.Open();
-                var executeReader = command.ExecuteReader();
-                while (executeReader.Read())
+                Connection = connection,
+                CommandText = $"SELECT * FROM Student ORDER BY {orderBy}"
+            };
+            connection.Open();
+            var dataReader = command.ExecuteReader();
+            while (dataReader.Read())
+            {
+                var student = new Student
                 {
-                    var student = new Student
-                    {
-                        IndexNumber = executeReader["IndexNumber"].ToString(),
-                        FirstName = executeReader["FirstName"].ToString(),
-                        LastName = executeReader["LastName"].ToString(),
-                        BirthDate = executeReader["BirthDate"].ToString(),
-                        IdEnrollment = IntegerType.FromObject(executeReader["IdEnrollment"])
-                    };
-                    students.Add(student);
-                }
+                    IndexNumber = dataReader["IndexNumber"].ToString(),
+                    FirstName = dataReader["FirstName"].ToString(),
+                    LastName = dataReader["LastName"].ToString(),
+                    BirthDate = dataReader["BirthDate"].ToString(),
+                    IdEnrollment = IntegerType.FromObject(dataReader["IdEnrollment"])
+                };
+                students.Add(student);
             }
             return students;
         }
@@ -122,12 +129,18 @@ namespace Cw4.DAL
             using var command = new SqlCommand
             {
                 Connection = connection,
-                CommandText = $"UPDATE Student " +
-                $"SET IndexNumber='{student.IndexNumber}', FirstName='{student.FirstName}', " +
-                $"LastName='{student.LastName}', BirthDate='{student.BirthDate}', " +
-                $"IdEnrollment={student.IdEnrollment}" +
-                $"WHERE IndexNumber='{indexNumber}'"
+                CommandText = "UPDATE Student " +
+                "SET IndexNumber = @newIndexNumber, FirstName = @firstName, " +
+                "LastName = @lastName, BirthDate = @birthDate, " +
+                "IdEnrollment = @idEnrollment " +
+                "WHERE IndexNumber = @oldIndexNumber"
             };
+            command.Parameters.AddWithValue("newIndexNumber", student.IndexNumber);
+            command.Parameters.AddWithValue("firstName", student.FirstName);
+            command.Parameters.AddWithValue("lastName", student.LastName);
+            command.Parameters.AddWithValue("birthDate", student.BirthDate);
+            command.Parameters.AddWithValue("idEnrollment", student.IdEnrollment);
+            command.Parameters.AddWithValue("oldIndexNumber", indexNumber);
             connection.Open();
             return command.ExecuteNonQuery();
         }
