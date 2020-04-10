@@ -60,6 +60,34 @@ namespace Cw4.DAL
             return null;
         }
 
+        public object GetStudentEnrollment(string indexNumber)
+        {
+            using var connection = new SqlConnection(connectionString);
+            using var command = new SqlCommand
+            {
+                Connection = connection,
+                CommandText = $"SELECT Enrollment.IdEnrollment, Semester, StartDate, Name " +
+                                $"FROM Student " +
+                                $"INNER JOIN Enrollment ON Student.IdEnrollment = Enrollment.IdEnrollment " +
+                                $"INNER JOIN Studies ON Enrollment.IdStudy = Studies.IdStudy " +
+                                $"WHERE IndexNumber = '{indexNumber}'"
+            };
+            connection.Open();
+            var executeReader = command.ExecuteReader();
+            if (executeReader.Read())
+            {
+                var enrollment = new Enrollment
+                {
+                    IdEnrollment = IntegerType.FromObject(executeReader["IdEnrollment"]),
+                    Semester = executeReader["Semester"].ToString(),
+                    StartDate = executeReader["StartDate"].ToString(),
+                    Name = executeReader["Name"].ToString(),
+                };
+                return enrollment;
+            }
+            return new Enrollment();
+        }
+
         public IEnumerable<Student> GetStudents(string orderBy)
         {
             if (orderBy == null)

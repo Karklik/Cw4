@@ -31,6 +31,16 @@ namespace Cw4.Controllers
                 return NotFound("Nie znaleziono studneta");
         }
 
+        [HttpGet("{indexNumber}/enrollment")]
+        public IActionResult GetStudentEnrollment(string indexNumber)
+        {
+            var student = _dbService.GetStudentEnrollment(indexNumber);
+            if (student != null)
+                return Ok(student);
+            else
+                return NotFound("Nie znaleziono studneta");
+        }
+
         [HttpPost]
         public IActionResult CreateStudent(Student student)
         {

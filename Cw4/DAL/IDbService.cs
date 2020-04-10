@@ -10,5 +10,6 @@ namespace Cw4.DAL
         public int CreateStudent(Student student);
         public int UpdateStudent(string indexNumber, Student student);
         public int DeleteStudent(string indexNumber);
+        object GetStudentEnrollment(string indexNumber);
     }
 }
