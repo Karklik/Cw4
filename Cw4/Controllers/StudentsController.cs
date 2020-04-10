@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.SqlClient;
 using Cw4.DAL;
 using Cw4.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -25,12 +26,17 @@ namespace Cw4.Controllers
         [HttpGet("{id}")]
         public IActionResult GetStudent(int id)
         {
-            if (id == 1)
+            /*            if (id == 1)
+                        {
+                            return Ok("Kowalski");
+                        } else if (id == 2)
+                        {
+                            return Ok("Malewski");
+                        }*/
+            var connectionString = "Data Source=db-mssql;Initial Catalog=s16556;Integrated Security=True";
+            using (var client = new SqlConnection(connectionString))
             {
-                return Ok("Kowalski");
-            } else if (id == 2)
-            {
-                return Ok("Malewski");
+                
             }
 
             return NotFound("Nie znaleziono studneta");
